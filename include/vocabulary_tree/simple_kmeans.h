@@ -12,9 +12,28 @@
 namespace vt {
 
 // Forward declare function objects for choosing the initial centers
-struct InitRandom;
 struct InitGiven;
 /// @todo InitKmeanspp
+
+/**
+ * \brief Initializer for K-means that randomly selects k features as the cluster centers.
+ */
+struct InitRandom
+{
+  template<class Feature, class Distance, class FeatureAllocator>
+  void operator()(const std::vector<Feature*>& features, size_t k, std::vector<Feature, FeatureAllocator>& centers, Distance distance)
+  {
+    // Construct a random permutation of the features using a Fisher-Yates shuffle
+    std::vector<Feature*> features_perm = features;
+    for (size_t i = features.size(); i > 1; --i) {
+      size_t k = rand() % i;
+      std::swap(features_perm[i-1], features_perm[k]);
+    }
+    // Take the first k permuted features as the initial centers
+    for (size_t i = 0; i < centers.size(); ++i)
+      centers[i] = *features_perm[i];
+  }
+};
 
 /**
  * \brief Class for performing K-means clustering, optimized for a particular feature type and metric.
@@ -199,26 +218,6 @@ SimpleKmeans<Feature, Distance, FeatureAllocator>::clusterOnce(const std::vector
   return sse;
 }
 
-
-/**
- * \brief Initializer for K-means that randomly selects k features as the cluster centers.
- */
-struct InitRandom
-{
-  template<class Feature, class Distance, class FeatureAllocator>
-  void operator()(const std::vector<Feature*>& features, size_t k, std::vector<Feature, FeatureAllocator>& centers, Distance distance)
-  {
-    // Construct a random permutation of the features using a Fisher-Yates shuffle
-    std::vector<Feature*> features_perm = features;
-    for (size_t i = features.size(); i > 1; --i) {
-      size_t k = rand() % i;
-      std::swap(features_perm[i-1], features_perm[k]);
-    }
-    // Take the first k permuted features as the initial centers
-    for (size_t i = 0; i < centers.size(); ++i)
-      centers[i] = *features_perm[i];
-  }
-};
 
 /**
  * \brief Dummy initializer for K-means that leaves the centers as-is.
