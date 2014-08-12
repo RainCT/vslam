@@ -1,16 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vocabulary_tree)
 
-find_package(catkin REQUIRED COMPONENTS
-    roscpp
-)
+find_package(catkin REQUIRED)
 find_package(Eigen REQUIRED)
 find_package(OpenCV REQUIRED)
 
-include_directories(include 
-    ${catkin_INCLUDE_DIRS}
-    ${Eigen_INCLUDE_DIRS}
-    ${OpenCV_INCLUDE_DIRS}
+include_directories(
+  include
+  ${Eigen_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
@@ -27,6 +25,8 @@ add_library(vocabulary_tree
     src/generic_tree.cpp
     src/cv_tree.cpp
 )
+
+target_link_libraries(vocabulary_tree ${OpenCV_LIBRARIES} ${Eigen_LIBRARIES})
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}

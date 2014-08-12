@@ -10,17 +10,11 @@
   <run_depend>catkin</run_depend>
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>catkin</build_depend>
   <build_depend>opencv2</build_depend>
   <build_depend>eigen</build_depend>
 
-  <run_depend>catkin</run_depend>
   <run_depend>opencv2</run_depend>
   <run_depend>eigen</run_depend>
-
-  <export>
-    <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lvocabulary_tree" />
-  </export>
 
 </package>
 
