@@ -74,47 +74,55 @@ void CVTree::save(const std::string& file) const
   out.write((const char*)(&valid_centers_[0]), valid_centers_.size());
 }
 
+struct db_header
+{
+  uint32_t k;
+  uint32_t levels;
+  uint32_t size;
+  uint32_t cols;
+  uint32_t type;
+};
+
 void CVTree::load(const std::string& file)
 {
   clear();
 
+  db_header hdr;
   std::ifstream in;
   in.exceptions(std::ifstream::eofbit | std::ifstream::failbit | std::ifstream::badbit);
-
-  uint32_t size;
-  uint32_t cols;
-  uint32_t type;
 
   try {
     in.open(file.c_str(), std::ios_base::binary);
 
-    in.read((char*)(&k_), sizeof(uint32_t)); // Read branching factor
-    in.read((char*)(&levels_), sizeof(uint32_t)); // Read tree levels
-    in.read((char*)(&size), sizeof(uint32_t)); // Read nb of feature
-    in.read((char*)(&cols), sizeof(uint32_t)); // Read cols
-    in.read((char*)(&type), sizeof(uint32_t)); // Opencv int feature type
+    in.seekg(0, std::ios::end);
+    int length = in.tellg();
+    in.seekg(0, std::ios::beg);
+
+    in.read((char*)&hdr, sizeof(db_header));
+    k_ = hdr.k;
+    levels_ = hdr.levels;
 
     // Read in centers as one big cv::Mat to preserve data locality.
-    cv::Mat all(size, cols, type);
+    cv::Mat all(hdr.size, hdr.cols, hdr.type);
     assert(all.isContinuous());
-    in.read((char*)all.data, size * cols * all.elemSize());
+    in.read((char*)all.data, hdr.size * hdr.cols * all.elemSize());
 
     // Now add cv::Mat centers that point into the big block of data.
-    centers_.reserve(size);
+    centers_.reserve(hdr.size);
     for (int i = 0; i < all.rows; ++i)
       centers_.push_back(all.row(i));
 
     // Read in valid centers as usual
-    valid_centers_.resize(size);
+    valid_centers_.resize(hdr.size);
     in.read((char*)(&valid_centers_[0]), valid_centers_.size());
-    assert(in.tellg() == cols);
+    assert(in.tellg() == length);
   }
   catch (std::ifstream::failure& e) {
     throw std::runtime_error( (boost::format("Failed to load vocabulary tree file '%s'") % file).str() );
   }
 
   setNodeCounts();
-  assert(size == num_words_ + word_start_);
+  assert(hdr.size == num_words_ + word_start_);
 }
 
 size_t CVTree::dimension() const
