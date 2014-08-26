@@ -94,7 +94,7 @@ public:
                                         std::vector<Feature, FeatureAllocator>& centers,
                                         std::vector<unsigned int>& membership) const;
   
-private:
+protected:
   
   squared_distance_type clusterOnce(const std::vector<Feature*>& features, size_t k,
                                     std::vector<Feature, FeatureAllocator>& centers,
